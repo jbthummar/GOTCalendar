@@ -148,11 +148,26 @@ body {
     height: 120px;
     border: 1px solid #ccd1d3;
     border-top: none;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    -ms-flex-flow: row wrap;
+    flex-flow: row wrap;
+    -webkit-align-content: flex-start;
+    -ms-align-content: flex-start;
+    align-content: flex-start;
 }
 
 .day__person {
+    display: -webkit-flex;
+    display: -ms-flexbox;
     display: flex;
+    -webkit-align-items: center;
+    -ms-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
+    -ms-justify-content: center;
     justify-content: center;
     width: 100%;
     height: 100%;
@@ -160,6 +175,7 @@ body {
     text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
     font-size: 14px;
     font-weight: 600;
+    text-align: center;
 }
 
 .day__person:nth-of-type(9n + 1) {

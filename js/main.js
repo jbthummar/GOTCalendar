@@ -5,7 +5,10 @@
 		btnUpdate = document.getElementsByClassName('js-update')[0],
 		elmCalender = document.getElementsByClassName('js-calendar')[0],
 		inputYearValue,
-		arrDays = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' ];
+		CONSTANTS = {
+			DAY_TO_SECONDS:  24 * 60 * 60 * 1000,
+			DAYS: [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' ]
+		};
 
 	function getJsonInput() {
 		return eval(document.getElementById('json-input').value);
@@ -22,7 +25,7 @@
 	function onUpdateYear(inputData, inputYearValue ) {
 		var mapDayToNames = {};
 
-		arrDays.forEach( function( day ) {
+		CONSTANTS.DAYS.forEach( function( day ) {
 			mapDayToNames[day] = [];
 		}); ;
 
@@ -31,23 +34,31 @@
 	};
 
 	function fillSortedDataForDays(data, inputYearValue, mapDayToNames) {
-		// TODO: Optimize for subsequent calculations after calculated for 1 year.
-
 		var personData = JSON.parse( JSON.stringify( data ));
+		fillAgeAndDay( personData );
+		sortDataOnAge( personData );
+		createMapFromDayToNames( personData, mapDayToNames );
+	}
+
+	function fillAgeAndDay( personData ) {
 		personData.forEach( function(person) {
 			var arrDate = person.birthday.split('/'),
-				objDOB = new Date( arrDate[2], arrDate[0], arrDate[1] ),
-				objDateToday = new Date( inputYearValue, arrDate[0], arrDate[1] ),
-				oneDay = 24 * 60 * 60 * 1000;
+				objDOB = new Date( arrDate[2], arrDate[0] - 1 , arrDate[1] ),
+				oneDay = CONSTANTS.DAY_TO_SECONDS;
 
-			person.day = arrDays[ objDateToday.getDay() ];
 			person.age = Math.round(( new Date() - objDOB )/ oneDay );
+			objDOB.setFullYear(inputYearValue);
+			person.day = CONSTANTS.DAYS[ objDOB.getDay() ];
 		});
+	}
 
+	function sortDataOnAge( personData ) {
 		personData.sort( function( a, b ) {
 			return a.age - b.age;
 		});
+	}
 
+	function createMapFromDayToNames( personData, mapDayToNames ) {
 		personData.forEach( function( person ) {
 			mapDayToNames[person.day].push( person.name );
 		});
@@ -55,7 +66,7 @@
 
 	function updateView( mapDayToNames ) {
 
-		arrDays.forEach( function( day) {
+		CONSTANTS.DAYS.forEach( function( day) {
 
 			var arrPersons = mapDayToNames[day],
 				cntPersons = arrPersons.length,
@@ -80,7 +91,6 @@
 			}
 
 		});
-
 
 		console.log(mapDayToNames);
 	};

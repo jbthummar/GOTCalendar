@@ -1,13 +1,26 @@
 ( function() {
 	'use strict';
 
+	/**
+	* @object Constants
+	* @description Holds constants used in application
+	**/
 	var CONSTANTS = {
 			DAY_TO_SECONDS:  24 * 60 * 60 * 1000,
 			DAYS: [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' ]
 		};
 
+	/**
+	* @class Helper
+	* @description Implements helper methods
+	**/
 	var Helper = {
 
+		/**
+		* @method sortArrayOfObjects
+		* @description Sorts an array in ascending order based on given key values.
+		* @param key - key name on which objects needs to be sorted.
+		**/
 		sortArrayOfObjects : function( array, key ) {
 			array.sort( function( a, b ) {
 				return a[key] - b[key];
@@ -15,18 +28,34 @@
 			return array;
 		},
 
+		/**
+		* @method getWidthFromCount
+		* @description Returns width in % based on number of nodes in grid.
+		* @param count - Total number of nodes in square box.
+		**/
 		getWidthFromCount : function( count ) {
 			return 100/Math.ceil( Math.sqrt(count));
 		}
 	};
 
+	/**
+	* @class PersonNodeFactory
+	* @description Implements node factory for person nodes.
+	* @constructor PersonNodeFactory
+	* @param maxSize[100] - Max number of nodes it can retain.
+	**/
 	var PersonNodeFactory = function( maxSize ) {
 		this._nodeList = [];
-		this._maxSize = maxSize;
+		this._maxSize = maxSize | 100;
 	};
 	
 	PersonNodeFactory.prototype = {
 
+		/**
+		* @method _createElement
+		* @private
+		* @description Returns dom element for person node, if not available then creates it.
+		**/
 		_createElement: function() {
 			if( this._nodeList.length ) {
 				return this._nodeList.pop();
@@ -36,7 +65,14 @@
 			return elmNode;
 		},
 
-		createPersonNode : function( name,width, height ) {
+		/**
+		* @method createPersonNode
+		* @description Creates person node with text and sets width, height.
+		* @param name - text inside node.( person name)
+		* @param width - width of the node.
+		* @param height - height of the node.
+		**/
+		createPersonNode : function( name, width, height ) {
 			var elmPerson = this._createElement();
 			// elmPerson.className = 'day__person';
 			elmPerson.innerText = name;
@@ -46,6 +82,11 @@
 			return elmPerson;
 		},
 
+		/**
+		* @method releasePersonNode
+		* @description Stores back node into list if space is available.
+		* @param node - node to be stored
+		**/
 		releasePersonNode : function( node ) {
 			if( this._nodeList.length <= this._maxSize ) {
 				this._nodeList.push(node);
@@ -53,18 +94,33 @@
 		}
 	}
 
+	// Create factory instance - Singlton object
 	PersonNodeFactory.Instance = new PersonNodeFactory(100);
 
 
+	/**
+	* @class GOTCalendar
+	* @description Handles calendar operations.
+	* @constructor GOTCalendar
+	* @param elmCalender - Wrapper element of calendar.
+	**/
 	var GOTCalendar = function( elmCalender ) {
 		this._elmCalender = elmCalender;
 	};
 
 	GOTCalendar.prototype = {
 
+		/**
+		* @method onUpdateYear
+		* @description To be called when calendar needed to be calculated again.
+		* @param inputData - array person objects
+		* @param inputYearValue - year value for which birthday needed to be calculated.
+		**/
 		onUpdateYear : function( inputData, inputYearValue ) {
+			// Map from day to array of person names.
 			var mapDayToNames = {};
 
+			// Initialize map
 			CONSTANTS.DAYS.forEach( function( day ) {
 				mapDayToNames[day] = [];
 			}); ;
@@ -73,16 +129,30 @@
 			this._updateView(mapDayToNames);
 		},
 
-
-		_fillSortedDataForDays : function(data, inputYearValue, mapDayToNames) {
+		/**
+		* @method _fillSortedDataForDays
+		* @private
+		* @description Fills map from day to person names in sorted order.
+		* @param inputData - array person objects
+		* @param inputYearValue - year value for which birthday needed to be calculated.
+		* @param mapDayToNames - map object to be filled.
+		**/
+		_fillSortedDataForDays : function( data, inputYearValue, mapDayToNames ) {
+			// Clone data
 			var personData = JSON.parse( JSON.stringify( data ));
+
 			this._fillAgeAndDay( personData, inputYearValue );
-			personData = this._filterOutNoBorns( personData );
-			//TODO : Add code to filter out persons born after input year.
 			this._sortDataOnAge( personData );
 			this._createMapFromDayToNames( personData, mapDayToNames );
 		},
 
+		/**
+		* @method _fillAgeAndDay
+		* @private
+		* @description Calculates and fills persons' age and day value of birdate for given year.
+		* @param personData - array of person objects.
+		* @param inputYearValue - year value for which birthday needed to be calculated.
+		**/
 		_fillAgeAndDay : function( personData, inputYearValue ) {
 			personData.forEach( function(person) {
 				var arrDate = person.birthday.split('/'),
@@ -95,26 +165,44 @@
 			});
 		},
 
-		_filterOutNoBorns : function( personData ) {
-			return personData.filter( function( person ) { 
-				return person.age > 0;
-			} );
-		},
-
+		/**
+		* @method _sortDataOnAge
+		* @private
+		* @description Sorts persons array based on their ages from youngster to elder.
+		* @param personData - array of persons
+		**/
 		_sortDataOnAge : function( personData ) {
 			Helper.sortArrayOfObjects(personData, 'age' );
 		},
 
+		/**
+		* @method _createMapFromDayToNames
+		* @private
+		* @description Fills map by storing person name agains day he is born 
+		* and stores only persons who are born before input year.
+		* @param personData - array of persons
+		* @param mapDayToNames - map to be filled.
+		**/
 		_createMapFromDayToNames : function( personData, mapDayToNames ) {
 			personData.forEach( function( person ) {
-				mapDayToNames[person.day].push( person.name );
+				if(  person.age >= 0 ) {
+					mapDayToNames[person.day].push( person.name );
+				}
 			});
 		},
 
+		/**
+		* @method _updateView
+		* @private
+		* @description Updates view.
+		* @param mapDayToNames - map containing sorted persons names against birth day for given year.
+		**/
 		_updateView : function( mapDayToNames ) {
+			// Release all person nodes which will be removed thereafter
 			var arrPersonNodes = this._elmCalender.getElementsByClassName('day__person');
 			this._releasePersonNodes( arrPersonNodes );
 
+			// For each days start filling dom.
 			CONSTANTS.DAYS.forEach( function( day) {
 
 				var arrPersonNames = mapDayToNames[day],
@@ -124,7 +212,7 @@
 					elmLiCalendarBoxClassName = elmLiCalendarBox.className,
 					elmDocFragment = document.createDocumentFragment();
 
-				//TODO : Add code to release person nodes
+				// Empty person nodes container
 				elmDaysContainer.innerHTML = '';
 
 
@@ -138,16 +226,19 @@
 
 					arrPersonNames.forEach( function( person ) {
 						elmDocFragment.appendChild(PersonNodeFactory.Instance.createPersonNode(person, width, height));
-						// elmDaysContainer.appendChild( PersonNodeFactory.Instance.createPersonNode(person, width, height));
 					});
 					elmDaysContainer.appendChild(elmDocFragment);
 				}
 
 			}.bind(this));
-
-			console.log(mapDayToNames);
 		},
 
+		/**
+		* @method _releasePersonNodes
+		* @private
+		* @description Relases person nodes to factory.
+		* @param arrPersonNodes - an array of nodes to be released.
+		**/
 		_releasePersonNodes : function( arrPersonNodes ) {
 			var cntPersonNodes = arrPersonNodes.length;
 			// Release nodes to save it to Factory

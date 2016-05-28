@@ -112,14 +112,17 @@
 		},
 
 		_updateView : function( mapDayToNames ) {
+			var arrPersonNodes = this._elmCalender.getElementsByClassName('day__person');
+			this._releasePersonNodes( arrPersonNodes );
 
 			CONSTANTS.DAYS.forEach( function( day) {
 
-				var arrPersons = mapDayToNames[day],
-					cntPersons = arrPersons.length,
+				var arrPersonNames = mapDayToNames[day],
+					cntPersons = arrPersonNames.length,
 					elmLiCalendarBox = this._elmCalender.querySelector('[data-day=' + day +']'),
 					elmDaysContainer = elmLiCalendarBox.getElementsByClassName('day__people')[0],
-					elmLiCalendarBoxClassName = elmLiCalendarBox.className;
+					elmLiCalendarBoxClassName = elmLiCalendarBox.className,
+					elmDocFragment = document.createDocumentFragment();
 
 				//TODO : Add code to release person nodes
 				elmDaysContainer.innerHTML = '';
@@ -133,14 +136,26 @@
 					width = height = Helper.getWidthFromCount(cntPersons);
 					elmLiCalendarBox.className = elmLiCalendarBoxClassName.replace('day--empty', '');
 
-					arrPersons.forEach( function( person ) {
-						elmDaysContainer.appendChild( PersonNodeFactory.Instance.createPersonNode(person, width, height));
+					arrPersonNames.forEach( function( person ) {
+						elmDocFragment.appendChild(PersonNodeFactory.Instance.createPersonNode(person, width, height));
+						// elmDaysContainer.appendChild( PersonNodeFactory.Instance.createPersonNode(person, width, height));
 					});
+					elmDaysContainer.appendChild(elmDocFragment);
 				}
 
 			}.bind(this));
 
 			console.log(mapDayToNames);
+		},
+
+		_releasePersonNodes : function( arrPersonNodes ) {
+			var cntPersonNodes = arrPersonNodes.length;
+			// Release nodes to save it to Factory
+
+			for( var i = 0; i < cntPersonNodes ; i++ ) {
+				PersonNodeFactory.Instance.releasePersonNode( arrPersonNodes[ i ] );
+			}
+
 		}
 	};
 

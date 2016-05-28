@@ -16,7 +16,7 @@
 		},
 
 		getWidthFromCount : function( count ) {
-			return 100/Math.ceil( Math.sqrt(count))
+			return 100/Math.ceil( Math.sqrt(count));
 		}
 	};
 
@@ -77,6 +77,7 @@
 		_fillSortedDataForDays : function(data, inputYearValue, mapDayToNames) {
 			var personData = JSON.parse( JSON.stringify( data ));
 			this._fillAgeAndDay( personData, inputYearValue );
+			personData = this._filterOutNoBorns( personData );
 			//TODO : Add code to filter out persons born after input year.
 			this._sortDataOnAge( personData );
 			this._createMapFromDayToNames( personData, mapDayToNames );
@@ -94,8 +95,14 @@
 			});
 		},
 
+		_filterOutNoBorns : function( personData ) {
+			return personData.filter( function( person ) { 
+				return person.age > 0;
+			} );
+		},
+
 		_sortDataOnAge : function( personData ) {
-			personData = Helper.sortArrayOfObjects(personData, 'age' );
+			Helper.sortArrayOfObjects(personData, 'age' );
 		},
 
 		_createMapFromDayToNames : function( personData, mapDayToNames ) {
